@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import urllib2
-from paypal.standard.models import PayPalStandardBase
+from paypal.standard.models import PayPalAppEngineBase
 from paypal.standard.ipn.signals import *
 
 
-class PayPalIPN(PayPalStandardBase):
+class PayPalIPN(PayPalAppEngineBase):
     """Logs PayPal IPN interactions."""
     format = u"<IPN: %s %s>"
 
     class Meta:
-        db_table = "paypal_ipn"
         verbose_name = "PayPal IPN"
 
     def _postback(self):

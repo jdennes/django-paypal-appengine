@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 
-
 def duplicate_txn_id(ipn_obj):
     """Returns True if a record with this transaction id exists."""
-    return ipn_obj._default_manager.filter(txn_id=ipn_obj.txn_id).count() > 0
+
+    from paypal.standard.ipn.models import PayPalIPN
+    return PayPalIPN.gql("WHERE txn_id = :txn_id", txn_id=ipn_obj.txn_id).get() is not None
     
 def make_secret(form_instance, secret_fields=None):
     """

@@ -1,10 +1,264 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from django.db import models
+from google.appengine.ext import db
 from django.conf import settings
 from paypal.standard.helpers import duplicate_txn_id, check_secret
 from paypal.standard.conf import RECEIVER_EMAIL, POSTBACK_ENDPOINT, SANDBOX_POSTBACK_ENDPOINT
 
+class PayPalAppEngineBase(db.Model):
+  
+    """Meta class (ported to an appengine db.Model) for common variables shared by IPN and PDT: http://tinyurl.com/cuq6sj"""
+    # @@@ Might want to add all these one distant day.
+    # FLAG_CODE_CHOICES = (
+    # PAYMENT_STATUS_CHOICES = "Canceled_ Reversal Completed Denied Expired Failed Pending Processed Refunded Reversed Voided".split()
+    # AUTH_STATUS_CHOICES = "Completed Pending Voided".split()
+    # ADDRESS_STATUS_CHOICES = "confirmed unconfirmed".split()
+    # PAYER_STATUS_CHOICES = "verified / unverified".split()
+    # PAYMENT_TYPE_CHOICES =  "echeck / instant.split()
+    # PENDING_REASON = "address authorization echeck intl multi-currency unilateral upgrade verify other".split()
+    # REASON_CODE = "chargeback guarantee buyer_complaint refund other".split()
+    # TRANSACTION_ENTITY_CHOICES = "auth reauth order payment".split()
+    
+    # Transaction and Notification-Related Variables
+    business = db.StringProperty()
+    charset=db.StringProperty()
+    custom = db.StringProperty()
+    notify_version = db.FloatProperty()
+    parent_txn_id = db.StringProperty()
+    receiver_email = db.EmailProperty()
+    receiver_id = db.StringProperty()  # 258DLEHY2BDK6
+    residence_country = db.StringProperty()
+    test_ipn = db.BooleanProperty()
+    txn_id = db.StringProperty()
+    txn_type = db.StringProperty()
+    verify_sign = db.StringProperty()
+    
+    # Buyer Information Variables
+    address_country = db.StringProperty()
+    address_city = db.StringProperty()
+    address_country_code = db.StringProperty()
+    address_name = db.StringProperty()
+    address_state = db.StringProperty()
+    address_status = db.StringProperty()
+    address_street = db.StringProperty()
+    address_zip = db.StringProperty()
+    contact_phone = db.StringProperty()
+    first_name = db.StringProperty()
+    last_name = db.StringProperty()
+    payer_business_name = db.StringProperty()
+    payer_email = db.StringProperty()
+    payer_id = db.StringProperty()
+    
+    # Payment Information Variables
+    auth_amount = db.FloatProperty()
+    auth_exp = db.StringProperty()
+    auth_id = db.StringProperty()
+    auth_status = db.StringProperty()
+    exchange_rate = db.FloatProperty()
+    invoice = db.StringProperty()
+    item_name = db.StringProperty()
+    item_number = db.StringProperty()
+    mc_currency = db.StringProperty()
+    mc_fee = db.FloatProperty()
+    mc_gross = db.FloatProperty()
+    mc_handling = db.FloatProperty()
+    mc_shipping = db.FloatProperty()
+    memo = db.StringProperty()
+    num_cart_items = db.IntegerProperty()
+    option_name1 = db.StringProperty()
+    option_name2 = db.StringProperty()
+    payer_status = db.StringProperty()
+    payment_date = db.DateTimeProperty()
+    payment_gross = db.FloatProperty()
+    payment_status = db.StringProperty()
+    payment_type = db.StringProperty()
+    pending_reason = db.StringProperty()
+    protection_eligibility=db.StringProperty()
+    quantity = db.IntegerProperty()
+    reason_code = db.StringProperty()
+    remaining_settle = db.FloatProperty()
+    settle_amount = db.FloatProperty()
+    settle_currency = db.StringProperty()
+    shipping = db.FloatProperty()
+    shipping_method = db.StringProperty()
+    tax = db.FloatProperty()
+    transaction_entity = db.StringProperty()
+    
+    # Auction Variables
+    auction_buyer_id = db.StringProperty()
+    auction_closing_date = db.DateTimeProperty()
+    auction_multi_item = db.IntegerProperty()
+    for_auction = db.FloatProperty()
+        
+    # Recurring Payments Variables
+    amount = db.FloatProperty()
+    amount_per_cycle = db.FloatProperty()
+    initial_payment_amount = db.FloatProperty()
+    next_payment_date = db.DateTimeProperty()
+    outstanding_balance = db.FloatProperty()
+    payment_cycle= db.StringProperty()
+    period_type = db.StringProperty()
+    product_name = db.StringProperty()
+    product_type= db.StringProperty()
+    profile_status = db.StringProperty()
+    recurring_payment_id = db.StringProperty()
+    rp_invoice_id= db.StringProperty()
+    time_created = db.DateTimeProperty()
+    
+    # Subscription Variables
+    amount1 = db.FloatProperty()
+    amount2 = db.FloatProperty()
+    amount3 = db.FloatProperty()
+    mc_amount1 = db.FloatProperty()
+    mc_amount2 = db.FloatProperty()
+    mc_amount3 = db.FloatProperty()
+    password = db.StringProperty()
+    period1 = db.StringProperty()
+    period2 = db.StringProperty()
+    period3 = db.StringProperty()
+    reattempt = db.StringProperty()
+    recur_times = db.IntegerProperty()
+    recurring = db.StringProperty()
+    retry_at = db.DateTimeProperty()
+    subscr_date = db.DateTimeProperty()
+    subscr_effective = db.DateTimeProperty()
+    subscr_id = db.StringProperty()
+    username = db.StringProperty()
+    
+    # Dispute Resolution Variables
+    case_creation_date = db.DateTimeProperty()
+    case_id = db.StringProperty()
+    case_type = db.StringProperty()
+    
+    # Variables not categorized
+    receipt_id= db.StringProperty()  # 1335-7816-2936-1451 
+    currency_code = db.StringProperty()
+    handling_amount = db.FloatProperty()
+    transaction_subject = db.StringProperty()
+
+    # @@@ Mass Pay Variables (Not Implemented, needs a separate model, for each transaction x)
+    # fraud_managment_pending_filters_x = models.CharField(max_length=255, blank=True) 
+    # option_selection1_x = models.CharField(max_length=200, blank=True) 
+    # option_selection2_x = models.CharField(max_length=200, blank=True) 
+    # masspay_txn_id_x = models.CharField(max_length=19, blank=True)
+    # mc_currency_x = models.CharField(max_length=32, default="USD", blank=True)
+    # mc_fee_x = models.DecimalField(max_digits=64, decimal_places=2, default=0, blank=True, null=True)
+    # mc_gross_x = models.DecimalField(max_digits=64, decimal_places=2, default=0, blank=True, null=True)
+    # mc_handlingx = models.DecimalField(max_digits=64, decimal_places=2, default=0, blank=True, null=True)
+    # payment_date = models.DateTimeField(blank=True, null=True, help_text="HH:MM:SS DD Mmm YY, YYYY PST")
+    # payment_status = models.CharField(max_length=9, blank=True)
+    # reason_code = models.CharField(max_length=15, blank=True)
+    # receiver_email_x = models.EmailField(max_length=127, blank=True)
+    # status_x = models.CharField(max_length=9, blank=True)
+    # unique_id_x = models.CharField(max_length=13, blank=True)
+
+    # Non-PayPal Variables - full IPN/PDT query and time fields.    
+    ipaddress = db.StringProperty()
+    flag = db.BooleanProperty(default=False)
+    flag_code = db.StringProperty()
+    flag_info = db.TextProperty()
+    query = db.TextProperty()  # What we sent to PayPal.
+    response = db.TextProperty()  # What we got back.
+    created_at = db.DateTimeProperty(auto_now_add=True)
+    updated_at = db.DateTimeProperty(auto_now=True)
+    
+    class Meta:
+        abstract = True
+
+    def __unicode__(self):
+        if self.is_transaction():
+            return self.format % ("Transaction", self.txn_id)
+        else:
+            return self.format % ("Recurring", self.recurring_payment_id)
+        
+    def is_transaction(self):
+        return self.txn_id and len(self.txn_id) > 0
+
+    def is_recurring(self):
+        return self.recurring_payment_id and len(self.recurring_payment_id) > 0
+    
+    def is_subscription_cancellation(self):
+        return self.txn_type == "subscr_cancel"
+    
+    def is_subscription_end_of_term(self):
+        return self.txn_type == "subscr_eot"
+    
+    def is_subscription_modified(self):
+        return self.txn_type == "subscr_modify"
+    
+    def is_subscription_signup(self):
+        return self.txn_type == "subscr_signup"
+    
+    def set_flag(self, info, code=None):
+        """Sets a flag on the transaction and also sets a reason."""
+        self.flag = True
+        self.flag_info += info
+        if code is not None:
+            self.flag_code = code
+        
+    def verify(self, item_check_callable=None):
+        """
+        Verifies an IPN and a PDT.
+        Checks for obvious signs of weirdness in the payment and flags appropriately.
+        
+        Provide a callable that takes an instance of this class as a parameter and returns
+        a tuple (False, None) if the item is valid. Should return (True, "reason") if the
+        item isn't valid. Strange but backward compatible :) This function should check 
+        that `mc_gross`, `mc_currency` `item_name` and `item_number` are all correct.
+
+        """
+        self.response = self._postback()
+        self._verify_postback()  
+        if not self.flag:
+            if self.is_transaction():
+                if self.payment_status != "Completed":
+                    self.set_flag("Invalid payment_status. (%s)" % self.payment_status)
+                if duplicate_txn_id(self):
+                    self.set_flag("Duplicate txn_id. (%s)" % self.txn_id)
+                if self.receiver_email != RECEIVER_EMAIL:
+                    self.set_flag("Invalid receiver_email. (%s)" % self.receiver_email)
+                if callable(item_check_callable):
+                    flag, reason = item_check_callable(self)
+                    if flag:
+                        self.set_flag(reason)
+            else:
+                # @@@ Run a different series of checks on recurring payments.
+                pass
+        
+        self.put()
+        self.send_signals()
+
+    def verify_secret(self, form_instance, secret):
+        """Verifies an IPN payment over SSL using EWP."""
+        if not check_secret(form_instance, secret):
+            self.set_flag("Invalid secret. (%s)") % secret
+        self.put()
+        self.send_signals()
+
+    def get_endpoint(self):
+        """Set Sandbox endpoint if the test variable is present."""
+        if self.test_ipn:
+            return SANDBOX_POSTBACK_ENDPOINT
+        else:
+            return POSTBACK_ENDPOINT
+
+    def initialize(self, request):
+        """Store the data we'll need to make the postback from the request object."""
+        self.query = getattr(request, request.method).urlencode()
+        self.ipaddress = request.META.get('REMOTE_ADDR', '')
+
+    def send_signals(self):
+        """After a transaction is completed use this to send success/fail signals"""
+        raise NotImplementedError
+        
+    def _postback(self):
+        """Perform postback to PayPal and store the response in self.response."""
+        raise NotImplementedError
+        
+    def _verify_postback(self):
+        """Check self.response is valid andcall self.set_flag if there is an error."""
+        raise NotImplementedError
 
 class PayPalStandardBase(models.Model):
     """Meta class for common variables shared by IPN and PDT: http://tinyurl.com/cuq6sj"""

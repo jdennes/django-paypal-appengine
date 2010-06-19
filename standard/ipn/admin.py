@@ -66,4 +66,4 @@ class PayPalIPNAdmin(admin.ModelAdmin):
     search_fields = ["txn_id", "recurring_payment_id"]
 
 
-admin.site.register(PayPalIPN, PayPalIPNAdmin)
+#admin.site.register(PayPalIPN, PayPalIPNAdmin)

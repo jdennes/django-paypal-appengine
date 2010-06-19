@@ -5,7 +5,7 @@ Django PayPal
 About
 -----
 
-Django PayPal is a pluggable application that implements with PayPal Payments 
+Django PayPal is a pluggable application *(specifically hacked to work on Google App Engine)* that implements with PayPal Payments 
 Standard and Payments Pro.
 
 Before diving in, a quick review of PayPal's payment methods is in order! [PayPal Payments Standard](https://cms.paypal.com/cms_content/US/en_US/files/developer/PP_WebsitePaymentsStandard_IntegrationGuide.pdf) is the "Buy it Now" buttons you may have
